@@ -11,15 +11,13 @@ class Product extends Model
 
     // app/Models/Product.php
 
-    public function stores()
+    public function stores(): BelongsToMany
     {
-        // You MUST add withPivot('quantity') here
-        return $this->belongsToMany(Store::class)->withPivot('quantity')->withTimestamps();
+        return $this->belongsToMany(Store::class)->withTimestamps();
     }
 
-    public function warehouses()
+    public function warehouses(): BelongsToMany
     {
-        // You MUST add withPivot('quantity') here
-        return $this->belongsToMany(Warehouse::class)->withPivot('quantity')->withTimestamps();
+        return $this->belongsToMany(Warehouse::class)->withTimestamps();
     }
 }

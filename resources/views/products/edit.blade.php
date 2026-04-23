@@ -1,31 +1,41 @@
-@extends("layouts.app")
-@section("content")
-<div class="container">
-    <form action="{{ route('products.update', $product) }}" method="POST" enctype="multipart/form-data">
-        @csrf @method('PUT')
-        <input type="text" name="name" value="{{ $product->name }}" class="form-control mb-3">
+@extends('layouts.app')
+@section('content')
+    <div class="container">
+        <form action="{{ route('products.update', $product) }}" method="POST" enctype="multipart/form-data">
+            @csrf @method('PUT')
+            <input type="text" name="name" value="{{ $product->name }}" class="form-control mb-3"
+                placeholder="Product Name" required>
 
-        <h5>Stores</h5>
-        @foreach($stores as $store)
-            @php $pivot = $product->stores->where('id', $store->id)->first(); @endphp
-            <div class="mb-2 border p-2">
-                <input type="checkbox" name="stores[{{ $store->id }}][selected]" {{ $pivot ? 'checked' : '' }}>
-                <label>{{ $store->name }}</label>
-                <input type="number" name="stores[{{ $store->id }}][quantity]" value="{{ $pivot->pivot->quantity ?? 0 }}" class="form-control d-inline w-25">
-            </div>
-        @endforeach
+            <textarea name="description" class="form-control mb-3" placeholder="Description">{{ $product->description }}</textarea>
 
-        <h5>Warehouses</h5>
-        @foreach($warehouses as $wh)
-            @php $pivot = $product->warehouses->where('id', $wh->id)->first(); @endphp
-            <div class="mb-2 border p-2">
-                <input type="checkbox" name="warehouses[{{ $wh->id }}][selected]" {{ $pivot ? 'checked' : '' }}>
-                <label>{{ $wh->name }}</label>
-                <input type="number" name="warehouses[{{ $wh->id }}][quantity]" value="{{ $pivot->pivot->quantity ?? 0 }}" class="form-control d-inline w-25">
-            </div>
-        @endforeach
+            <input type="number" name="price" step="0.01" value="{{ $product->price }}" class="form-control mb-3"
+                placeholder="Price" required>
 
-        <button type="submit" class="btn btn-success mt-3">Update</button>
-    </form>
-</div>
+            <input type="file" name="image" class="form-control mb-3">
+            @if ($product->image)
+                <img src="{{ asset('storage/' . $product->image) }}" alt="Current Image" class="img-thumbnail mb-3"
+                    style="max-width: 200px;">
+            @endif
+
+            <h5>Stores</h5>
+            <select name="stores[]" id="stores" class="form-select mb-3" multiple size="5">
+                @foreach ($stores as $store)
+                    <option value="{{ $store->id }}" {{ $product->stores->contains($store->id) ? 'selected' : '' }}>
+                        {{ $store->name }}</option>
+                @endforeach
+            </select>
+            <small class="text-muted">Hold Ctrl/Cmd to select more than one store.</small>
+
+            <h5>Warehouses</h5>
+            <select name="warehouses[]" id="warehouses" class="form-select mb-3" multiple size="5">
+                @foreach ($warehouses as $wh)
+                    <option value="{{ $wh->id }}" {{ $product->warehouses->contains($wh->id) ? 'selected' : '' }}>
+                        {{ $wh->name }}</option>
+                @endforeach
+            </select>
+            <small class="text-muted">Hold Ctrl/Cmd to select more than one warehouse.</small>
+
+            <button type="submit" class="btn btn-success mt-3">Update</button>
+        </form>
+    </div>
 @endsection

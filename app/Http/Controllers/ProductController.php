@@ -70,7 +70,8 @@ class ProductController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'price' => 'required|numeric',
+            'price' => 'required|numeric|min:0',
+            'image' => 'nullable|image|max:2048',
         ]);
 
         // Handle Image
@@ -87,54 +88,15 @@ class ProductController extends Controller
         $product->price = $request->price;
         $product->save(); // Use save() instead of update() to be safe
 
-        // Sync Stores - Manual build to ensure IDs are integers
-        $storeData = [];
-        if ($request->has('stores')) {
-            foreach ($request->stores as $id => $val) {
-                if (isset($val['selected'])) {
-                    $storeData[(int)$id] = ['quantity' => $val['quantity'] ?? 0];
-                }
-            }
-        }
-        $product->stores()->sync($storeData);
-
-        // Sync Warehouses
-        $whData = [];
-        if ($request->has('warehouses')) {
-            foreach ($request->warehouses as $id => $val) {
-                if (isset($val['selected'])) {
-                    $whData[(int)$id] = ['quantity' => $val['quantity'] ?? 0];
-                }
-            }
-        }
-        $product->warehouses()->sync($whData);
+        $this->syncRelations($product, $request);
 
         return redirect()->route('products.index')->with('success', 'Updated!');
     }
 
     private function syncRelations($product, $request)
     {
-        // Sync Stores
-        $stores = [];
-        if ($request->has('stores')) {
-            foreach ($request->stores as $id => $data) {
-                if (isset($data['selected'])) {
-                    $stores[$id] = ['quantity' => $data['quantity'] ?? 0];
-                }
-            }
-        }
-        $product->stores()->sync($stores);
-
-        // Sync Warehouses
-        $warehouses = [];
-        if ($request->has('warehouses')) {
-            foreach ($request->warehouses as $id => $data) {
-                if (isset($data['selected'])) {
-                    $warehouses[$id] = ['quantity' => $data['quantity'] ?? 0];
-                }
-            }
-        }
-        $product->warehouses()->sync($warehouses);
+        $product->stores()->sync(array_map('intval', $request->input('stores', [])));
+        $product->warehouses()->sync(array_map('intval', $request->input('warehouses', [])));
     }
 
     public function destroy(Product $product)
